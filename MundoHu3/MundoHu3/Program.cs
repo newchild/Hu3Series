@@ -22,7 +22,7 @@ namespace MundoHu3
         public static Spell.Active E;
         public static Spell.Active R;
         public static Menu Menu, SettingsMenu;
-        public static bool Wing = false;
+        public static bool UsingW = false;
 
 
         static void Main(string[] args)
@@ -87,20 +87,20 @@ namespace MundoHu3
 
             CheckW();
             
-            if (Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.Combo)
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))
             {
                 Combo();
             }
-            if (Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.Harass)
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Harass))
             {
                 Harass();
             }
-            if (Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.LaneClear)
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
             {
                 LaneClear();
             }
 
-            if (Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.LastHit)
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LastHit))
             {
                 LastHit();
             }
@@ -129,15 +129,15 @@ namespace MundoHu3
 
         private static void CheckW()
         {
-            var usingW = Player.HasBuff("burningagony");
+            var WIsActive = Player.HasBuff("burningagony");
             var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
 
-            if (Wing && usingW)
+            if (UsingW && WIsActive)
             {
-                    if (!target.IsValidTarget(W.Range) && Wing == true)
+                    if (!target.IsValidTarget(W.Range) && UsingW == true)
                     {
                         W.Cast();
-                        Wing = false;
+                        UsingW = false;
                     }
                 }
             }
@@ -157,10 +157,10 @@ namespace MundoHu3
                 Q.Cast(target);
             }
 
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && Wing == false)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && UsingW == false)
             {
                 W.Cast();
-                Wing = true;
+                UsingW = true;
             }
 
             if (useE && E.IsReady() && target.IsValidTarget(_Player.AttackRange) && !target.IsZombie)
@@ -182,10 +182,10 @@ namespace MundoHu3
                 Q.Cast(target);
             }
 
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && Wing == false)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && UsingW == false)
             {
                 W.Cast();
-                Wing = true;
+                UsingW = true;
             }
 
             if (useE && E.IsReady() && target.IsValidTarget(_Player.AttackRange) && !target.IsZombie)

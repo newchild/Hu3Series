@@ -129,15 +129,15 @@ namespace EzrealHu3
 
             W.AllowedCollisionCount = int.MaxValue;
 
-            if (useQ && Q.IsReady() && target.IsValidTarget(Q.Range) && !target.IsDead && !target.IsZombie && Q.GetPrediction(target).HitChance >= HitChance.High)
+            if (useQ && Q.IsReady() && target.IsValidTarget(Q.Range) && !target.IsZombie && Q.GetPrediction(target).HitChance >= HitChance.High)
             {
                 Q.Cast(target);
             }
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsDead && !target.IsZombie && W.GetPrediction(target).HitChance >= HitChance.High)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && W.GetPrediction(target).HitChance >= HitChance.High)
             {
                 W.Cast(target);
             }
-            if (useR && R.IsReady() && target.IsValidTarget(R.Range) && !target.IsDead && !target.IsZombie && R.GetPrediction(target).HitChance >= HitChance.High
+            if (useR && R.IsReady() && target.IsValidTarget(R.Range) && !target.IsZombie && R.GetPrediction(target).HitChance >= HitChance.High
                 && target.Health <= Player.Instance.GetSpellDamage(target, SpellSlot.R))
             {
                 R.Cast(target);
@@ -151,11 +151,11 @@ namespace EzrealHu3
             var useW = SettingsMenu["harassW"].Cast<CheckBox>().CurrentValue;
             var target = TargetSelector.GetTarget(1300, DamageType.Physical);
 
-            if (useQ && Q.IsReady() && target.IsValidTarget(Q.Range) && !target.IsDead && !target.IsZombie && Q.GetPrediction(target).HitChance >= HitChance.Medium)
+            if (useQ && Q.IsReady() && target.IsValidTarget(Q.Range) && !target.IsZombie && Q.GetPrediction(target).HitChance >= HitChance.Medium)
             {
                 Q.Cast(target);
             }
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsDead && !target.IsZombie && W.GetPrediction(target).HitChance >= HitChance.Medium)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && W.GetPrediction(target).HitChance >= HitChance.Medium)
             {
                 W.Cast(target);
             }
@@ -165,7 +165,7 @@ namespace EzrealHu3
         {
             var useQ = SettingsMenu["lasthitQ"].Cast<CheckBox>().CurrentValue;
             var mana = SettingsMenu["lasthitMana"].Cast<Slider>().CurrentValue;
-            var minions = ObjectManager.Get<Obj_AI_Base>().OrderBy(m => m.Health).Where(m => m.IsMinion && m.IsEnemy && !m.IsDead);
+            var minions = ObjectManager.Get<Obj_AI_Minion>().OrderBy(m => m.Health).Where(m => m.IsEnemy);
             foreach (var minion in minions)
             {
                 if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && !minion.IsValidTarget(_Player.AttackRange) 
@@ -180,7 +180,7 @@ namespace EzrealHu3
         {
             var useQ = SettingsMenu["laneclearQ"].Cast<CheckBox>().CurrentValue;
             var mana = SettingsMenu["laneclearMana"].Cast<Slider>().CurrentValue;
-            var minions = ObjectManager.Get<Obj_AI_Base>().OrderBy(m => m.Health).Where(m => m.IsMinion && m.IsEnemy && !m.IsDead);
+            var minions = ObjectManager.Get<Obj_AI_Minion>().OrderBy(m => m.Health).Where(m => m.IsEnemy);
             foreach (var minion in minions)
             {
                 if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && !minion.IsValidTarget(_Player.AttackRange)

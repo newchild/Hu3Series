@@ -42,13 +42,13 @@ namespace MundoHu3
                 return;
 
 
-            Q = new Spell.Skillshot(SpellSlot.Q, 970, SkillShotType.Linear, 250, Int32.MaxValue, 60);
-            W = new Spell.Active(SpellSlot.W, 160);
-            E = new Spell.Active(SpellSlot.E, 125);
+            Q = new Spell.Skillshot(SpellSlot.Q, 960, SkillShotType.Linear, 250, 2000, 60);
+            W = new Spell.Active(SpellSlot.W, 295);
+            E = new Spell.Active(SpellSlot.E);
             R = new Spell.Active(SpellSlot.R);
 
             Menu = MainMenu.AddMenu("Mundo Hu3", "mundohu3");
-            Menu.AddGroupLabel("Mundo Hu3 V0.4");
+            Menu.AddGroupLabel("Mundo Hu3 V0.6");
             Menu.AddSeparator();
             Menu.AddLabel("Made By MarioGK");
 
@@ -116,14 +116,23 @@ namespace MundoHu3
             }
 
         }
+        public static float GetDamage(SpellSlot spell, Obj_AI_Base target)
+        {
+            if (spell == SpellSlot.Q)
+            {
+                if (!Q.IsReady())
+                    return 0;
+                return _Player.CalculateDamageOnUnit(target, DamageType.Magical, (80f + 50f * (Q.Level - 1)) + target.Health * (15 + 3 * (Q.Level - 1)) / 100);
+            }
+            return 0;
+        }
 
         private static void CheckW()
         {
-            var useW = SettingsMenu["comboW"].Cast<CheckBox>().CurrentValue;
-            var usingW = Player.HasBuff("BurningAgony");
-            var target = TargetSelector.GetTarget(_Player.AttackRange, DamageType.Magical);
+            var usingW = Player.HasBuff("burningagony");
+            var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
 
-            if (useW && Wing && usingW)
+            if (Wing && usingW)
             {
                     if (!target.IsValidTarget(W.Range) && Wing == true)
                     {
@@ -138,20 +147,23 @@ namespace MundoHu3
             var useQ = SettingsMenu["comboQ"].Cast<CheckBox>().CurrentValue;
             var useW = SettingsMenu["comboW"].Cast<CheckBox>().CurrentValue;
             var useE = SettingsMenu["comboE"].Cast<CheckBox>().CurrentValue;
-            var target = TargetSelector.GetTarget(_Player.AttackRange, DamageType.Magical);
+            var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
 
-            if (useQ && Q.IsReady() && Q.GetPrediction(target).HitChance >= HitChance.High && target.IsValidTarget(Q.Range) && !target.IsDead && !target.IsZombie)
+            if (target == null)
+                return;
+
+            if (useQ && Q.IsReady() && Q.GetPrediction(target).HitChance >= HitChance.High && target.IsValidTarget(Q.Range) && !target.IsZombie)
             {
                 Q.Cast(target);
             }
 
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsDead && !target.IsZombie && Wing == false)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && Wing == false)
             {
                 W.Cast();
                 Wing = true;
             }
 
-            if (useE && E.IsReady() && target.IsValidTarget(E.Range) && !target.IsDead && !target.IsZombie)
+            if (useE && E.IsReady() && target.IsValidTarget(_Player.AttackRange) && !target.IsZombie)
             {
                 E.Cast();
             }
@@ -163,31 +175,35 @@ namespace MundoHu3
             var useQ = SettingsMenu["harassQ"].Cast<CheckBox>().CurrentValue;
             var useW = SettingsMenu["harassW"].Cast<CheckBox>().CurrentValue;
             var useE = SettingsMenu["harassE"].Cast<CheckBox>().CurrentValue;
-            var target = TargetSelector.GetTarget(_Player.AttackRange, DamageType.Magical);
+            var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
 
-            if (useQ && Q.IsReady() && Q.GetPrediction(target).HitChance >= HitChance.High && target.IsValidTarget(Q.Range) && !target.IsDead && !target.IsZombie)
+            if (useQ && Q.IsReady() && Q.GetPrediction(target).HitChance >= HitChance.High && target.IsValidTarget(Q.Range) && !target.IsZombie)
             {
                 Q.Cast(target);
             }
 
-            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsDead && !target.IsZombie && Wing == false)
+            if (useW && W.IsReady() && target.IsValidTarget(W.Range) && !target.IsZombie && Wing == false)
             {
                 W.Cast();
                 Wing = true;
             }
 
-            if (useE && E.IsReady() && target.IsValidTarget(E.Range) && !target.IsDead && !target.IsZombie)
+            if (useE && E.IsReady() && target.IsValidTarget(_Player.AttackRange) && !target.IsZombie)
             {
                 E.Cast();
             }
         }
         private static void LastHit()
         {
-            var useQ = SettingsMenu["Qlh"].Cast<CheckBox>().CurrentValue;
-            var minions = ObjectManager.Get<Obj_AI_Base>().OrderBy(m => m.Health).Where(m => m.IsMinion && m.IsEnemy && !m.IsDead);
+            var useQ = SettingsMenu["Qlast"].Cast<CheckBox>().CurrentValue;
+            var minions = ObjectManager.Get<Obj_AI_Minion>().OrderBy(m => m.Health).Where(m => m.IsEnemy);
+
+            if (minions == null)
+                return;
+
             foreach (var minion in minions)
             {
-                if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && !minion.IsValidTarget(_Player.AttackRange) && minion.Health <= Player.Instance.GetSpellDamage(minion, SpellSlot.Q))
+                if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && minion.Health <= GetDamage(SpellSlot.Q, minion))
                 {
                     Q.Cast(minion);
                 }
@@ -197,11 +213,15 @@ namespace MundoHu3
 
         private static void LaneClear()
         {
-            var useQ = SettingsMenu["Qlc"].Cast<CheckBox>().CurrentValue;
-            var minions = ObjectManager.Get<Obj_AI_Base>().OrderBy(m => m.Health).Where(m => m.IsMinion && m.IsEnemy && !m.IsDead);
+            var useQ = SettingsMenu["Qlane"].Cast<CheckBox>().CurrentValue;
+            var minions = ObjectManager.Get<Obj_AI_Minion>().OrderBy(m => m.Health).Where(m => m.IsEnemy);
+
+            if (minions == null)
+                return;
+
             foreach (var minion in minions)
             {
-                if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && !minion.IsValidTarget(_Player.AttackRange) && minion.Health <= Player.Instance.GetSpellDamage(minion, SpellSlot.Q))
+                if (useQ && Q.IsReady() && minion.IsValidTarget(Q.Range) && minion.Health <= GetDamage(SpellSlot.Q, minion))
                 {
                     Q.Cast(minion);
                 }
@@ -210,6 +230,8 @@ namespace MundoHu3
         }
         private static void Drawing_OnDraw(EventArgs args)
         {
+            if (_Player.IsDead) return;
+
             if (SettingsMenu["drawQ"].Cast<CheckBox>().CurrentValue)
             {
                 new Circle() { Color = Color.Red, BorderWidth = 1, Radius = Q.Range }.Draw(_Player.Position);
